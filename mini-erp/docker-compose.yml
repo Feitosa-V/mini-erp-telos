@@ -37,7 +37,7 @@ services:
       MYSQL_USER: user
       MYSQL_PASSWORD: password
     ports:
-      - "3306:3306"
+      - "3307:3306"
     networks:
       - mini-erp-network
     volumes:

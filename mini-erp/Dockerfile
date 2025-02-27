@@ -29,6 +29,12 @@ RUN composer install --no-dev --optimize-autoloader
 # Definir permissões
 RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
 
+# Atualizar o Node.js para uma versão compatível com NPM 11
+RUN curl -sL https://deb.nodesource.com/setup_20.x | bash - \
+    && apt-get install -y nodejs
+
+RUN npm install -g npm@latest
+
 # Expor a porta do PHP-FPM
 EXPOSE 9000
 
