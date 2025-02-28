@@ -45,7 +45,9 @@ class AuthenticatedSessionController extends Controller
             'access_token' => $token,
             'token_type' => 'Bearer',
             'user' => $user,
-        ]);
+        ], 200);
+
+        // exit();
     
         // Caso contrário, redireciona para a home no navegador
         // return redirect()->intended(RouteServiceProvider::HOME);

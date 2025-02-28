@@ -4,6 +4,8 @@ use App\Http\Controllers\ProductController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SupplierController;
+use App\Http\Controllers\ProductImportController;
+use App\Http\Controllers\OrderController;
 
 /*
 |--------------------------------------------------------------------------
@@ -26,4 +28,14 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::apiResource('products', ProductController::class);
+});
+
+Route::middleware(['auth:sanctum'])->post('/products/upload', [ProductImportController::class, 'upload']);
+
+Route::middleware(['auth:sanctum'])->group(function () {
+    Route::get('/orders', [OrderController::class, 'index']); // Listar pedidos
+    Route::post('/orders', [OrderController::class, 'store']); // Criar pedido
+    Route::get('/orders/{id}', [OrderController::class, 'show']); // Detalhes do pedido
+    Route::put('/orders/{id}', [OrderController::class, 'update']); // Atualizar pedido
+    Route::delete('/orders/{id}', [OrderController::class, 'destroy']); // Deletar pedido
 });

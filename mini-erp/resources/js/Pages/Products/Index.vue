@@ -1,54 +1,72 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import DangerButton from '@/Components/DangerButton.vue';
-import InputError from '@/Components/InputError.vue';
-import InputLabel from '@/Components/InputLabel.vue';
 import Modal from '@/Components/Modal.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
 import { Head } from '@inertiajs/vue3';
 import { ref } from 'vue';
+import axios from 'axios';
 import { router } from '@inertiajs/vue3';
 
-// Recebendo fornecedores do backend
+// Recebendo produtos do backend
 defineProps({
     products: Array,
+    suppliers: Array,
 });
 
-
-// Controle do modal
+// Controle dos modais
 const showModal = ref(false);
+const showDeleteModal = ref(false);
+const selectedProductId = ref(null);
 
-// Formulário de criação de fornecedor
+// Formulário de criação de produto
 const form = ref({
+    supplier_id: '',
+    reference: '',
     name: '',
     color: '',
     price: '',
 });
 
-// Criar fornecedor
-const createProduct = () => {
-    router.post('/api/products', form.value, {
-        headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        onSuccess: () => {
-            showModal.value = false; // Fecha o modal após sucesso
-            // form.value = { name: '', cnpj: '', zip_code: '' }; // Limpa o formulário
-            // suppliers.value.push(response.props.supplier); // Adiciona dinamicamente
-        },
-    });
-};
-
-// Deletar fornecedor
-const deleteSupplier = (id) => {
-    if (confirm('Are you sure?')) {
-        router.delete(`/api/products/${id}`,{
+// Criar produto
+const createProduct = async () => {
+    try {
+        await axios.post('/api/products', form.value, {
             headers: {
                 Authorization: `Bearer ${localStorage.getItem("token")}`,
+                Accept: 'application/json',
             },
         });
+
+        showModal.value = false;
+        form.value = { supplier_id: '',reference: '',name: '', color: '', price: '' };
+        router.reload(); // Recarrega os dados
+    } catch (error) {
+        console.error('Erro ao criar produto:', error.response?.data || error.message);
+    }
+};
+
+// Abrir modal de exclusão
+const confirmDelete = (id) => {
+    selectedProductId.value = id;
+    showDeleteModal.value = true;
+};
+
+// Deletar produto
+const deleteProduct = async () => {
+    try {
+        await axios.delete(`/api/products/${selectedProductId.value}`, {
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+                Accept: 'application/json',
+            },
+        });
+
+        showDeleteModal.value = false;
+        router.reload(); // Recarrega os dados
+    } catch (error) {
+        console.error('Erro ao excluir produto:', error.response?.data || error.message);
     }
 };
 </script>
@@ -77,10 +95,10 @@ const deleteSupplier = (id) => {
                     <table class="table-auto w-full border-collapse border border-gray-300">
                         <thead>
                             <tr class="bg-gray-200">
-                                <th class="border border-gray-300 px-4 py-2">Name</th>
+                                <th class="border border-gray-300 px-4 py-2">Nome</th>
                                 <th class="border border-gray-300 px-4 py-2">Cor</th>
                                 <th class="border border-gray-300 px-4 py-2">Preço</th>
-                                <th class="border border-gray-300 px-4 py-2">Actions</th>
+                                <th class="border border-gray-300 px-4 py-2">Ações</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -90,10 +108,10 @@ const deleteSupplier = (id) => {
                                 <td class="border border-gray-300 px-4 py-2">{{ product.price }}</td>
                                 <td class="border border-gray-300 px-4 py-2">
                                     <button
-                                        @click="deleteSupplier(product.id)"
+                                        @click="confirmDelete(product.id)"
                                         class="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded"
                                     >
-                                        Delete
+                                        Excluir
                                     </button>
                                 </td>
                             </tr>
@@ -103,42 +121,43 @@ const deleteSupplier = (id) => {
             </div>
         </div>
 
-        <!-- Modal -->
+        <!-- Modal de Criação -->
         <Modal :show="showModal" @close="showModal = false">
             <div class="p-6">
                 <h2 class="text-lg font-medium text-gray-900">Novo Produto</h2>
 
                 <form @submit.prevent="createProduct" class="mt-4">
-                    <TextInput
-                        v-model="form.name"
-                        type="text"
-                        placeholder="Name"
-                        class="mt-1 block w-full"
-                        required
-                    />
-
-                    <TextInput
-                        v-model="form.color"
-                        type="text"
-                        placeholder="Cor"
-                        class="mt-4 block w-full"
-                        required
-                    />
-
-                    <TextInput
-                        v-model="form.price"
-                        type="number"
-                        placeholder="Preço"
-                        class="mt-4 block w-full"
-                        required
-                    />
+                    <select v-model="form.supplier_id" class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm">
+                        <option value="" disabled>Selecione um fornecedor</option>
+                        <option v-for="supplier in suppliers" :key="supplier.id" :value="supplier.id">
+                            {{ supplier.name }}
+                        </option>
+                    </select>
+                    <TextInput v-model="form.reference" type="text" placeholder="Referência" class="mt-1 block w-full" required />
+                    <TextInput v-model="form.name" type="text" placeholder="Nome" class="mt-1 block w-full" required />
+                    <TextInput v-model="form.color" type="text" placeholder="Cor" class="mt-4 block w-full" required />
+                    <TextInput v-model="form.price" type="number" placeholder="Preço" class="mt-4 block w-full" required />
 
                     <div class="mt-6 flex justify-end">
-                        <SecondaryButton @click="showModal = false"> Cancelar </SecondaryButton>
-
+                        <SecondaryButton @click="showModal = false">Cancelar</SecondaryButton>
                         <PrimaryButton type="submit" class="ms-3">Salvar</PrimaryButton>
                     </div>
                 </form>
+            </div>
+        </Modal>
+
+        <!-- Modal de Confirmação de Exclusão -->
+        <Modal :show="showDeleteModal" @close="showDeleteModal = false">
+            <div class="p-6">
+                <h2 class="text-lg font-medium text-gray-900">Tem certeza?</h2>
+                <p class="mt-2 text-gray-600">Você deseja realmente excluir este produto? Esta ação não pode ser desfeita.</p>
+
+                <div class="mt-6 flex justify-end">
+                    <SecondaryButton @click="showDeleteModal = false">Cancelar</SecondaryButton>
+                    <PrimaryButton class="ms-3 bg-red-600 hover:bg-red-700" @click="deleteProduct">
+                        Excluir
+                    </PrimaryButton>
+                </div>
             </div>
         </Modal>
     </AuthenticatedLayout>

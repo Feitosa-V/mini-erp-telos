@@ -10,10 +10,16 @@ class Product extends Model
     use HasFactory;
 
     protected $fillable = [
-        'supplier_id', 
-        'reference',
-        'name',
-        'color',
-        'price',
+        'supplier_id', 'reference','name','color','price',
     ];
+
+    public function orders()
+    {
+        return $this->belongsToMany(Order::class)->withPivot('unit_price', 'quantity');
+    }
+
+    public function supplier()
+{
+    return $this->belongsTo(Supplier::class);
+}
 }

@@ -6,6 +6,7 @@ import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
 import { Head, Link, useForm, router } from '@inertiajs/vue3';
+import axios from "axios";
 
 defineProps({
     canResetPassword: {
@@ -22,21 +23,34 @@ const form = useForm({
     remember: false,
 });
 
-const submit = () => {
-    form.post(route("login"), {
-        preserveScroll: true, // Mantém a posição da página
-        onSuccess: (response) => {
-            // Captura o token da resposta
-            const token = response.props.auth_token || response.props.access_token;
+const submit = async () => {
+    try {
+        const response = await axios.post(route("login"), form, {
+            headers: {
+                "Accept": "application/json", // Garante que Laravel retorne JSON
+                "Content-Type": "application/json",
+            },
+        });
 
-            if (token) {
-                localStorage.setItem("token", token); // Salva o token no LocalStorage
-            }
+        console.log("Resposta do Login:", response.data);
 
-            router.visit("/dashboard"); // Redireciona para o Dashboard após login
-        },
-    });
+        // Captura o token corretamente
+        const token = response.data.access_token;
+
+        if (token) {
+            localStorage.setItem("token", token);
+            console.log("Novo Token Salvo:", token);
+
+            // Redireciona para o dashboard
+            router.visit(route("dashboard"));
+        } else {
+            console.error("Token não recebido!");
+        }
+    } catch (error) {
+        console.error("Erro no Login:", error.response?.data || error.message);
+    }
 };
+
 
 </script>
 

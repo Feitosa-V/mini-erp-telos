@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
+use App\Models\Supplier;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Inertia\Inertia;
@@ -78,6 +79,7 @@ class ProductController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        Product::findOrFail($id)->delete();
+        return response()->json(['message' => 'Produto removido com Sucesso']);
     }
 }

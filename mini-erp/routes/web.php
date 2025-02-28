@@ -6,6 +6,9 @@ use App\Http\Controllers\SupplierController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use App\Models\Order;
+use App\Models\Supplier;
+use App\Models\Product;
 
 /*
 |--------------------------------------------------------------------------
@@ -48,7 +51,21 @@ Route::middleware(['auth'])->group(function () {
 });
 
 Route::middleware(['auth'])->group(function () {
-    Route::get('/products', [ProductController::class, 'index'])->name('products.index');
+    Route::get('/products', function(){
+        return Inertia::render('Products/Index', [
+            'products' => Product::with('supplier')->get(),
+            'suppliers' => Supplier::all(),
+        ]);
+    })->name('products.index');
+});
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/orders', function () {
+        return Inertia::render('Orders/Index', [
+            'orders' => Order::with('supplier', 'products')->get(),
+            'suppliers' => Supplier::all(),
+        ]);
+    })->name('orders.index');
 });
 
 require __DIR__.'/auth.php';
