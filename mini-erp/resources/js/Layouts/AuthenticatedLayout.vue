@@ -6,6 +6,7 @@ import DropdownLink from '@/Components/DropdownLink.vue';
 import NavLink from '@/Components/NavLink.vue';
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink.vue';
 import { Link } from '@inertiajs/vue3';
+import { Home, Truck, Package, ShoppingCart, User, LogOut } from 'lucide-vue-next';
 
 const showingNavigationDropdown = ref(false);
 </script>
@@ -29,23 +30,23 @@ const showingNavigationDropdown = ref(false);
 
                             <!-- Navigation Links -->
                             <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                                <NavLink :href="route('dashboard')" :active="route().current('dashboard')">
-                                    Dashboard
+                                <NavLink :href="route('dashboard')" :active="route().current('dashboard')" class="flex items-center">
+                                    <Home class="w-4 h-4 mr-2" /> Dashboard
                                 </NavLink>
                             </div>
                             <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                                <NavLink :href="route('suppliers.index')" :active="route().current('suppliers.index')">
-                                    Fornecedores
+                                <NavLink :href="route('suppliers.index')" :active="route().current('suppliers.index')" class="flex items-center">
+                                    <Truck class="w-4 h-4 mr-2" /> Fornecedores
                                 </NavLink>
                             </div>
                             <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                                <NavLink :href="route('products.index')" :active="route().current('products.index')">
-                                    Produtos
+                                <NavLink :href="route('products.index')" :active="route().current('products.index')" class="flex items-center">
+                                    <Package class="w-4 h-4 mr-2" /> Produtos
                                 </NavLink>
                             </div>
                             <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                                <NavLink :href="route('orders.index')" :active="route().current('orders.index')">
-                                    Pedidos
+                                <NavLink :href="route('orders.index')" :active="route().current('orders.index')" class="flex items-center">
+                                    <ShoppingCart class="w-4 h-4 mr-2" /> Pedidos
                                 </NavLink>
                             </div>
                         </div>
@@ -79,9 +80,11 @@ const showingNavigationDropdown = ref(false);
                                     </template>
 
                                     <template #content>
-                                        <DropdownLink :href="route('profile.edit')"> Profile </DropdownLink>
-                                        <DropdownLink :href="route('logout')" method="post" as="button">
-                                            Log Out
+                                        <DropdownLink :href="route('profile.edit')" class="flex items-center">
+                                            <User class="w-4 h-4 mr-2" /> Perfil
+                                        </DropdownLink>
+                                        <DropdownLink :href="route('logout')" method="post" as="button" class="flex items-center">
+                                            <LogOut class="w-4 h-4 mr-2" /> Sair
                                         </DropdownLink>
                                     </template>
                                 </Dropdown>

@@ -5,11 +5,11 @@ import PrimaryButton from '@/Components/PrimaryButton.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
 import { Head, router } from '@inertiajs/vue3';
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import axios from 'axios';
 
 // Recebendo dados do backend
-defineProps({
+const props = defineProps({
     orders: Array,
     suppliers: Array,
     products: Array,
@@ -23,8 +23,45 @@ const selectedOrderId = ref(null);
 // Formulário de criação de pedido
 const form = ref({
     supplier_id: '',
-    products: [],
+    products: [{ id: '', quantity: 1, unit_price: 0 }],
     notes: '',
+});
+
+// Atualiza a lista de produtos filtrados pelo fornecedor selecionado
+const filteredProducts = computed(() => {
+    if (!form.value.supplier_id) return [];
+    return props.products.filter(product => product.supplier_id == form.value.supplier_id);
+});
+
+// Quando o fornecedor mudar, resetar os produtos selecionados
+watch(() => form.value.supplier_id, (newValue, oldValue) => {
+    if (newValue !== oldValue) {
+        form.value.products = [{ id: '', quantity: 1, unit_price: 0 }];
+    }
+});
+
+const productPlaceholder = computed(() => {
+    return form.value.supplier_id ? "Selecione um produto" : "Selecione primeiro um fornecedor";
+});
+
+// Atualiza o preço unitário ao selecionar um produto
+const updateUnitPrice = (index) => {
+    const selectedProduct = form.value.products[index];
+    const product = filteredProducts.value.find(p => p.id === parseInt(selectedProduct.id));
+
+    if (product) {
+        form.value.products.splice(index, 1, {
+            ...selectedProduct,
+            unit_price: product.price
+        });
+    }
+};
+
+// Calcular o valor total do pedido dinamicamente
+const totalValue = computed(() => {
+    return form.value.products.reduce((total, product) => {
+        return total + (product.quantity * product.unit_price);
+    }, 0);
 });
 
 // Adicionar novo produto ao pedido
@@ -37,29 +74,13 @@ const removeProduct = (index) => {
     form.value.products.splice(index, 1);
 };
 
-// Atualizar preço unitário ao selecionar um produto
-const updateUnitPrice = (index) => {
-    const selectedProduct = form.value.products[index];
-    const product = products.find(p => p.id === parseInt(selectedProduct.id));
-    if (product) {
-        selectedProduct.unit_price = product.price;
-    }
-};
-
-// Calcular o valor total do pedido
-const totalValue = computed(() => {
-    return form.value.products.reduce((total, product) => {
-        return total + (product.quantity * product.unit_price);
-    }, 0);
-});
-
 // Criar pedido
 const createOrder = () => {
     axios.post('/api/orders', { ...form.value, total_value: totalValue.value }, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
     }).then(() => {
         showModal.value = false;
-        form.value = { supplier_id: '', products: [], notes: '' };
+        form.value = { supplier_id: '', products: [{ id: '', quantity: 1, unit_price: 0 }], notes: '' };
         router.reload();
     });
 };
@@ -125,25 +146,37 @@ const deleteOrder = () => {
         <Modal :show="showModal" @close="showModal = false">
             <div class="p-6">
                 <h2 class="text-lg font-medium text-gray-900">Novo Pedido</h2>
+
                 <form @submit.prevent="createOrder" class="mt-4">
+                    <label>Fornecedor:</label>
                     <select v-model="form.supplier_id" class="block w-full mt-1 border-gray-300 rounded-lg">
                         <option value="" disabled>Selecione um fornecedor</option>
-                        <option v-for="supplier in suppliers" :key="supplier.id" :value="supplier.id">{{ supplier.name }}</option>
+                        <option v-for="supplier in suppliers" :key="supplier.id" :value="supplier.id">
+                            {{ supplier.name }}
+                        </option>
                     </select>
+
                     <h3 class="mt-4">Produtos:</h3>
                     <div v-for="(product, index) in form.products" :key="index" class="mt-2">
+                        <label>Produto:</label>
                         <select v-model="product.id" @change="updateUnitPrice(index)" class="block w-full border-gray-300 rounded-lg">
-                            <option value="" disabled>Selecione um produto</option>
-                            <option v-for="p in products" :key="p.id" :value="p.id">{{ p.name }}</option>
+                            <option :value="''" disabled>{{ productPlaceholder }}</option>
+                            <option v-for="p in filteredProducts" :key="p.id" :value="p.id">{{ p.name }}</option>
                         </select>
-                        <label for="">Quantidade:</label>
-                        <TextInput v-model="product.quantity" type="number" placeholder="Quantidade" class="mt-2 block w-full" required />
-                        <label for="">Preço Unitário:</label>
-                        <TextInput v-model="product.unit_price" type="number" placeholder="Preço Unitário" class="mt-2 block w-full" required disabled />
-                        <button @click="removeProduct(index)" class="bg-red-500 text-white px-2 py-1 rounded mt-2">Remover</button>
+
+                        <label>Quantidade:</label>
+                        <TextInput v-model="product.quantity" type="number" class="mt-2 block w-full" required />
+
+                        <label>Preço Unitário:</label>
+                        <TextInput v-model="product.unit_price" type="number" class="mt-2 block w-full" disabled />
+
+                        <button type="button" @click="removeProduct(index)" class="bg-red-500 text-white px-2 py-1 rounded mt-2">Remover</button>
                     </div>
-                    <button @click="addProduct" class="bg-green-500 text-white px-2 py-1 rounded mt-2">Adicionar Produto</button>
+
+                    <button type="button" @click="addProduct" class="bg-green-500 text-white px-2 py-1 rounded mt-2">Adicionar Produto</button>
+
                     <p class="mt-4 font-bold">Total: R$ {{ totalValue }}</p>
+
                     <div class="mt-6 flex justify-end">
                         <SecondaryButton @click="showModal = false">Cancelar</SecondaryButton>
                         <PrimaryButton type="submit" class="ml-3">Salvar</PrimaryButton>
