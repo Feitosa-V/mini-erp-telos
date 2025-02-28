@@ -49,6 +49,11 @@ const showingNavigationDropdown = ref(false);
                                     <ShoppingCart class="w-4 h-4 mr-2" /> Pedidos
                                 </NavLink>
                             </div>
+                            <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
+                                <NavLink :href="route('users.index')" :active="route().current('users.index')" class="flex items-center">
+                                    <User class="w-4 h-4 mr-2" /> Usuários
+                                </NavLink>
+                            </div>
                         </div>
 
                         <div class="hidden sm:flex sm:items-center sm:ms-6">
