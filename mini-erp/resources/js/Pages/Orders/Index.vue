@@ -3,78 +3,76 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import Modal from '@/Components/Modal.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
+import DangerButton from '@/Components/DangerButton.vue';
+import WarningButton from '@/Components/WarningButton.vue';
+import InputLabel from '@/Components/InputLabel.vue';
 import TextInput from '@/Components/TextInput.vue';
 import { Head, router } from '@inertiajs/vue3';
 import { ref, computed, watch } from 'vue';
 import axios from 'axios';
+import { Plus, Pencil, Trash2 } from 'lucide-vue-next';
 
-// Recebendo dados do backend
 const props = defineProps({
     orders: Array,
     suppliers: Array,
     products: Array,
 });
 
-// Controle do modal
 const showModal = ref(false);
+const showEditModal = ref(false);
 const showDeleteModal = ref(false);
+const selectedOrder = ref(null);
 const selectedOrderId = ref(null);
 
-// Formulário de criação de pedido
 const form = ref({
     supplier_id: '',
     products: [{ id: '', quantity: 1, unit_price: 0 }],
     notes: '',
 });
 
-// Atualiza a lista de produtos filtrados pelo fornecedor selecionado
+const confirmDelete = (id) => {
+    selectedOrderId.value = id;
+    showDeleteModal.value = true;
+};
+
+const confirmEdit = (order) => {
+    selectedOrder.value = { ...order };
+    showEditModal.value = true;
+};
+
 const filteredProducts = computed(() => {
     if (!form.value.supplier_id) return [];
     return props.products.filter(product => product.supplier_id == form.value.supplier_id);
 });
 
-// Quando o fornecedor mudar, resetar os produtos selecionados
 watch(() => form.value.supplier_id, (newValue, oldValue) => {
     if (newValue !== oldValue) {
         form.value.products = [{ id: '', quantity: 1, unit_price: 0 }];
     }
 });
 
-const productPlaceholder = computed(() => {
-    return form.value.supplier_id ? "Selecione um produto" : "Selecione primeiro um fornecedor";
-});
-
-// Atualiza o preço unitário ao selecionar um produto
 const updateUnitPrice = (index) => {
     const selectedProduct = form.value.products[index];
     const product = filteredProducts.value.find(p => p.id === parseInt(selectedProduct.id));
-
     if (product) {
-        form.value.products.splice(index, 1, {
-            ...selectedProduct,
-            unit_price: product.price
-        });
+        form.value.products.splice(index, 1, { ...selectedProduct, unit_price: product.price });
     }
 };
 
-// Calcular o valor total do pedido dinamicamente
 const totalValue = computed(() => {
     return form.value.products.reduce((total, product) => {
         return total + (product.quantity * product.unit_price);
     }, 0);
 });
 
-// Adicionar novo produto ao pedido
 const addProduct = () => {
     form.value.products.push({ id: '', quantity: 1, unit_price: 0 });
 };
 
-// Remover produto do pedido
 const removeProduct = (index) => {
     form.value.products.splice(index, 1);
 };
 
-// Criar pedido
 const createOrder = () => {
     axios.post('/api/orders', { ...form.value, total_value: totalValue.value }, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
@@ -85,13 +83,15 @@ const createOrder = () => {
     });
 };
 
-// Abrir modal de exclusão
-const confirmDelete = (id) => {
-    selectedOrderId.value = id;
-    showDeleteModal.value = true;
+const updateOrder = () => {
+    axios.put(`/api/orders/${selectedOrder.value.id}`, selectedOrder.value, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+    }).then(() => {
+        showEditModal.value = false;
+        router.reload();
+    });
 };
 
-// Deletar pedido
 const deleteOrder = () => {
     axios.delete(`/api/orders/${selectedOrderId.value}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
@@ -111,10 +111,12 @@ const deleteOrder = () => {
 
         <div class="py-12">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6">
+                <div class="bg-white shadow-xl sm:rounded-lg p-6">
                     <div class="flex justify-between mb-4">
                         <h1 class="text-2xl font-bold">Lista de Pedidos</h1>
-                        <button @click="showModal = true" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Novo Pedido</button>
+                        <PrimaryButton @click="showModal = true">
+                            <Plus class="w-4 h-4 mr-2" /> Novo Pedido
+                        </PrimaryButton>
                     </div>
                     <table class="table-auto w-full border-collapse border border-gray-300">
                         <thead>
@@ -122,7 +124,6 @@ const deleteOrder = () => {
                                 <th class="border px-4 py-2">Fornecedor</th>
                                 <th class="border px-4 py-2">Data</th>
                                 <th class="border px-4 py-2">Total</th>
-                                <th class="border px-4 py-2">Status</th>
                                 <th class="border px-4 py-2">Ações</th>
                             </tr>
                         </thead>
@@ -131,9 +132,13 @@ const deleteOrder = () => {
                                 <td class="border px-4 py-2">{{ order.supplier.name }}</td>
                                 <td class="border px-4 py-2">{{ order.order_date }}</td>
                                 <td class="border px-4 py-2">R$ {{ order.total_value }}</td>
-                                <td class="border px-4 py-2">{{ order.status }}</td>
-                                <td class="border px-4 py-2">
-                                    <button @click="confirmDelete(order.id)" class="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded">Excluir</button>
+                                <td class="border px-4 py-2 space-x-2">
+                                    <WarningButton @click="confirmEdit(order)">
+                                        <Pencil class="w-4 h-4 mr-1" /> Editar
+                                    </WarningButton>
+                                    <DangerButton @click="confirmDelete(order.id)" class="ms-3">
+                                        <Trash2 class="w-4 h-4 mr-1" /> Excluir
+                                    </DangerButton>
                                 </td>
                             </tr>
                         </tbody>
