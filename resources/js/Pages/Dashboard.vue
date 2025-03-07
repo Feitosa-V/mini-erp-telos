@@ -1,6 +1,7 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head } from '@inertiajs/vue3';
+import { ShoppingCart, Users, Truck, DollarSign } from 'lucide-vue-next';
 
 defineProps({
     totalOrders: Number,
@@ -23,18 +24,22 @@ defineProps({
                     <h1 class="text-2xl font-bold">Resumo Geral</h1>
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
                         <div class="bg-blue-500 text-white p-4 rounded-lg text-center">
+                            <ShoppingCart class="h-8 w-8 mx-auto mb-2" />
                             <h3 class="text-xl font-bold">{{ totalOrders }}</h3>
                             <p>Pedidos</p>
                         </div>
                         <div class="bg-red-500 text-white p-4 rounded-lg text-center">
+                            <Users class="h-8 w-8 mx-auto mb-2" />
                             <h3 class="text-xl font-bold">{{ totalUsers }}</h3>
                             <p>Usuários</p>
                         </div>
                         <div class="bg-yellow-500 text-white p-4 rounded-lg text-center">
+                            <Truck class="h-8 w-8 mx-auto mb-2" />
                             <h3 class="text-xl font-bold">{{ totalSuppliers }}</h3>
                             <p>Fornecedores</p>
                         </div>
                         <div class="bg-green-500 text-white p-4 rounded-lg text-center">
+                            <DollarSign class="h-8 w-8 mx-auto mb-2" />
                             <h3 class="text-xl font-bold">R$ {{ Number(totalSales).toFixed(2) }}</h3>
                             <p>Vendas Totais</p>
                         </div>

@@ -112,6 +112,7 @@ const deleteOrder = () => {
 
 // Abre o modal e define os produtos do pedido
 const openProductsModal = (order) => {
+    selectedOrder.value = order; 
     selectedOrderProducts.value = order.products; 
     showProductsModal.value = true;
 };
@@ -240,7 +241,6 @@ const openProductsModal = (order) => {
                         </div>
                     </div>
 
-                    <!-- Botão de Adicionar Produto -->
                     <button 
                         type="button" 
                         @click="addProduct" 
@@ -250,10 +250,20 @@ const openProductsModal = (order) => {
                         Adicionar Produto
                     </button>
 
+                    <div class="mb-4 mt-4">
+                        <InputLabel for="note" value="Observações sobre o pedido" />
+                        <textarea 
+                            id="note" 
+                            v-model="form.notes" 
+                            class="block w-full mt-1 border-gray-300 rounded-lg shadow-sm focus:ring focus:ring-indigo-300 p-2"
+                            rows="2"
+                            placeholder="Digite observações sobre o pedido..."
+                        ></textarea>
+                    </div>
+
                     <!-- Total -->
                     <p class="mt-4 text-lg font-semibold text-gray-900">Total: R$ {{ totalValue.toFixed(2) }}</p>
 
-                    <!-- Ações -->
                     <div class="mt-6 flex justify-end space-x-2">
                         <SecondaryButton @click="showModal = false">
                             <X class="w-4 h-4 mr-2" /> Cancelar
@@ -324,6 +334,11 @@ const openProductsModal = (order) => {
                             </tr>
                         </tbody>
                     </table>
+
+                    <div v-if="selectedOrder.notes" class="mt-4 p-4 bg-gray-100 border border-gray-300 rounded-lg">
+                        <h3 class="text-sm font-semibold text-gray-700">Observação:</h3>
+                        <p class="text-gray-800">{{ selectedOrder.notes }}</p>
+                    </div>
                 </div>
                 <p v-else class="mt-4 text-gray-600">Nenhum produto encontrado neste pedido.</p>
 
