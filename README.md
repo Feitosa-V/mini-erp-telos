@@ -78,6 +78,11 @@ docker exec -it mini-erp-mysql mysql -uuser -ppassword mini_erp
   - **Pendente** → Amarelo
   - **Cancelado** → Vermelho
 
+### Testar envio de e-mail
+```sh
+php artisan email:send-order-report
+```
+
 ## Tecnologias Utilizadas
 - **Backend:** Laravel
 - **Frontend:** Vue.js + Inertia / Breeze
