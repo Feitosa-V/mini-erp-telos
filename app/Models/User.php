@@ -47,4 +47,15 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(Supplier::class, 'supplier_user');
     }
+
+    public function getSuppliers()
+    {
+        if ($this->role === 'admin') {
+            return Supplier::all();
+        }
+
+        return Supplier::whereHas('users', function ($query) {
+            $query->where('user_id', $this->id);
+        })->where('status', 1)->get();
+    }
 }

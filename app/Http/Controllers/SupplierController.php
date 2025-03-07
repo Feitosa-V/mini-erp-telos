@@ -37,12 +37,13 @@ class SupplierController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'cnpj' => ['required', 'string', 'size:14', function ($attribute, $value, $fail) {
-                if (!self::validateCNPJ($value)) {
-                    $fail('CNPJ inválido.');
+            'cnpj' => ['required', 'string', 'size:18', function ($attribute, $value, $fail) {
+                $cleanCnpj = preg_replace('/\D/', '', $value);
+                if (!$this->validarCnpj($cleanCnpj)) {
+                    $fail('O CNPJ fornecido é inválido.');
                 }
             }],
-            'zip_code' => 'required|string|size:8',
+            'zip_code' => 'required|string',
         ]);
 
         // Buscar endereço pelo ViaCEP
@@ -111,22 +112,31 @@ class SupplierController extends Controller
         return response()->json(['message' => 'Fornecedor removido com Sucesso']);
     }
 
-    private static function validateCNPJ($cnpj)
+    // Função para validar o CNPJ
+    protected function validarCnpj($cnpj)
     {
-        $cnpj = preg_replace('/[^0-9]/', '', $cnpj);
-        if (strlen($cnpj) !== 14) return false;
-
-        // Algoritmo de validação do CNPJ
-        for ($t = 12; $t < 14; $t++) {
-            $d = 0;
-            $c = 0;
-            for ($m = $t - 8, $n = 0; $m < $t; $m++, $n++) {
-                $d += $cnpj[$n] * $m;
-            }
-            $d = ((10 * $d) % 11) % 10;
-            if ($cnpj[$t] != $d) return false;
+        if (strlen($cnpj) != 14) {
+            return false;
         }
 
-        return true;
+        $cnpj = str_pad($cnpj, 14, '0', STR_PAD_LEFT);
+        $digits = substr($cnpj, 0, 12);
+        $checksum = substr($cnpj, 12, 2);
+
+        $firstDigit = $this->calcularCnpjDigit($digits, [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]);
+        $secondDigit = $this->calcularCnpjDigit($digits . $firstDigit, [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]);
+
+        return $checksum === $firstDigit . $secondDigit;
+    }
+
+    protected function calcularCnpjDigit($cnpj, $weights)
+    {
+        $sum = 0;
+        foreach (str_split($cnpj) as $i => $digit) {
+            $sum += $digit * $weights[$i];
+        }
+
+        $remainder = $sum % 11;
+        return $remainder < 2 ? 0 : 11 - $remainder;
     }
 }

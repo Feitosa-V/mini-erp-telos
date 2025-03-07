@@ -11,6 +11,7 @@ use Inertia\Inertia;
 use App\Models\Order;
 use App\Models\Supplier;
 use App\Models\Product;
+use App\Models\User;
 
 /*
 |--------------------------------------------------------------------------
@@ -57,11 +58,13 @@ Route::middleware(['auth'])->group(function () {
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/orders', function () {
+        $user = auth()->user();
+        $suppliers = $user->getSuppliers();
         return Inertia::render('Orders/Index', [
             'orders' => Order::with(['supplier', 'products' => function ($query) {
                 $query->select('products.id', 'products.name', 'order_product.quantity', 'order_product.unit_price');
             }])->get(),
-            'suppliers' => Supplier::all(),
+            'suppliers' => $suppliers,
             'products' => Product::all()
         ]);
     })->name('orders.index');
