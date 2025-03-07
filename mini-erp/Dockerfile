@@ -35,6 +35,9 @@ RUN curl -sL https://deb.nodesource.com/setup_20.x | bash - \
 
 RUN npm install -g npm@latest
 
+# Forçar o OpenSSL legacy provider para evitar problemas com SSL
+ENV NODE_OPTIONS=--openssl-legacy-provider
+
 # Expor a porta do PHP-FPM
 EXPOSE 9000
 

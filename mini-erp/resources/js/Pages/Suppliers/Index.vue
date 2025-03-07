@@ -10,11 +10,22 @@ import TextInput from '@/Components/TextInput.vue';
 import { Head, router } from '@inertiajs/vue3';
 import { ref } from 'vue';
 import axios from 'axios';
-import { Plus, Pencil, Trash2 } from 'lucide-vue-next';
+import {Users, Plus, Pencil, Trash2 } from 'lucide-vue-next';
+
+// Máscara CNPJ
+const formatCNPJ = (value) => {
+    value = value.replace(/\D/g, "");
+    value = value.replace(/^(\d{2})(\d)/, "$1.$2");
+    value = value.replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3");
+    value = value.replace(/\.(\d{3})(\d)/, ".$1/$2");
+    value = value.replace(/(\d{4})(\d)/, "$1-$2");
+    return value.slice(0, 18);
+};
 
 // Recebendo fornecedores do backend
 defineProps({
     suppliers: Array,
+    users: Array,
 });
 
 // Controle dos modais
@@ -23,6 +34,14 @@ const showEditModal = ref(false);
 const showDeleteModal = ref(false);
 const supplierToDelete = ref(null);
 const supplierToEdit = ref(null);
+const showVincularModal = ref(false);
+const vinculo = ref({ supplier_id: '', supplier_name: '', user_id: '' });
+
+const openVincularModal = (supplier) => {
+    vinculo.value.supplier_id = supplier.id;
+    vinculo.value.supplier_name = supplier.name;
+    showVincularModal.value = true;
+};
 
 const confirmDelete = (id) => {
     supplierToDelete.value = id;
@@ -39,7 +58,21 @@ const form = ref({
     name: '',
     cnpj: '',
     zip_code: '',
+    status: ''
 });
+
+const vincularVendedor = async () => {
+    try {
+        await axios.post('/api/suppliers/attach-user', vinculo.value, {
+            headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+        });
+
+        showVincularModal.value = false;
+        router.reload({ only: ['suppliers'] });
+    } catch (error) {
+        console.error('Erro ao vincular vendedor:', error.response.data);
+    }
+};
 
 const createSupplier = async () => {
     try {
@@ -91,7 +124,7 @@ const deleteSupplier = async () => {
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
                 <div class="bg-white shadow-xl sm:rounded-lg p-6">
                     <div class="flex justify-between mb-4">
-                        <h1 class="text-2xl font-bold">Lista de Fornecedores</h1>
+                        <h1 class="text-2xl font-bold text-gray-800">Lista de Fornecedores</h1>
                         <PrimaryButton @click="showModal = true">
                             <Plus class="w-4 h-4 mr-2" /> Novo Fornecedor
                         </PrimaryButton>
@@ -99,10 +132,11 @@ const deleteSupplier = async () => {
 
                     <table class="w-full border-collapse border border-gray-300 text-sm">
                         <thead>
-                            <tr class="bg-gray-200">
+                            <tr class="bg-gray-200 text-gray-700">
                                 <th class="border px-4 py-2">Nome</th>
                                 <th class="border px-4 py-2">CNPJ</th>
                                 <th class="border px-4 py-2">Endereço</th>
+                                <th class="border px-4 py-2">Status</th>
                                 <th class="border px-4 py-2">Ações</th>
                             </tr>
                         </thead>
@@ -111,7 +145,14 @@ const deleteSupplier = async () => {
                                 <td class="border px-4 py-2">{{ supplier.name }}</td>
                                 <td class="border px-4 py-2">{{ supplier.cnpj }}</td>
                                 <td class="border px-4 py-2">{{ supplier.address }}</td>
+                                <td class="border px-4 py-3 text-center">
+                                    <span v-if="supplier.status" class="text-green-600 font-bold">Ativo</span>
+                                    <span v-else class="text-red-600 font-bold">Bloqueado</span>
+                                </td>
                                 <td class="border px-4 py-2 space-x-2">
+                                    <PrimaryButton @click="openVincularModal(supplier)">
+                                        <Users class="w-4 h-4 mr-1" /> Vincular Vendedor
+                                    </PrimaryButton>
                                     <WarningButton @click="confirmEdit(supplier)">
                                         <Pencil class="w-4 h-4 mr-1" /> Editar
                                     </WarningButton>
@@ -143,7 +184,13 @@ const deleteSupplier = async () => {
 
                     <div class="mt-4">
                         <InputLabel for="cnpj" value="CNPJ:" />
-                        <TextInput v-model="form.cnpj" type="text" class="block w-full" placeholder="Informe o CNPJ" required />
+                        <TextInput 
+                            v-model="form.cnpj" 
+                            type="text" 
+                            class="block w-full" 
+                            placeholder="Informe o CNPJ" 
+                            required 
+                            @input="form.cnpj = formatCNPJ(form.cnpj)" />
                     </div>
 
                     <div class="mt-4">
@@ -165,18 +212,33 @@ const deleteSupplier = async () => {
                 <h2 class="text-lg font-medium text-gray-900">Editar Fornecedor</h2>
                 <form @submit.prevent="updateSupplier">
                     <div class="mt-4">
-                        <InputLabel for="name" value="Nome" />
+                        <InputLabel for="name" value="Nome:" />
                         <TextInput v-model="supplierToEdit.name" type="text" class="block w-full" required />
                     </div>
 
                     <div class="mt-4">
-                        <InputLabel for="cnpj" value="CNPJ" />
-                        <TextInput v-model="supplierToEdit.cnpj" type="text" class="block w-full" required />
+                        <InputLabel for="cnpj" value="CNPJ:" />
+                        <TextInput 
+                            v-model="supplierToEdit.cnpj" 
+                            type="text" 
+                            class="block w-full" 
+                            required 
+                            @input="supplierToEdit.cnpj = formatCNPJ(supplierToEdit.cnpj)"/>
                     </div>
 
                     <div class="mt-4">
-                        <InputLabel for="zip_code" value="CEP" />
+                        <InputLabel for="zip_code" value="CEP:" />
                         <TextInput v-model="supplierToEdit.zip_code" type="text" class="block w-full" required />
+                    </div>
+
+                    <div class="mt-4">
+                        <div class="mt-4">
+                        <InputLabel for="status" value="Status:" />
+                        <select v-model="supplierToEdit.status" class="block w-full border-gray-300 rounded-lg shadow-sm">
+                            <option value="1">Ativo</option>
+                            <option value="0">Inativo</option>
+                        </select>
+</div>
                     </div>
 
                     <div class="mt-6 flex justify-end">
@@ -196,6 +258,35 @@ const deleteSupplier = async () => {
                     <SecondaryButton @click="showDeleteModal = false">Cancelar</SecondaryButton>
                     <PrimaryButton @click="deleteSupplier" class="ms-3 bg-red-600 hover:bg-red-700">Excluir</PrimaryButton>
                 </div>
+            </div>
+        </Modal>
+
+        <Modal :show="showVincularModal" @close="showVincularModal = false">
+            <div class="p-6">
+                <h2 class="text-lg font-medium text-gray-900">Vincular Vendedor</h2>
+                <p class="text-sm text-gray-600">Selecione um vendedor para associá-lo ao fornecedor.</p>
+
+                <form @submit.prevent="vincularVendedor">
+                    <div class="mt-4">
+                        <InputLabel value="Fornecedor:" />
+                        <TextInput v-model="vinculo.supplier_name" type="text" class="block w-full bg-gray-100" disabled />
+                    </div>
+
+                    <div class="mt-4">
+                        <InputLabel value="Vendedor:" />
+                        <select v-model="vinculo.user_id" class="block w-full border-gray-300 rounded-lg shadow-sm">
+                            <option value="" disabled>Selecione um vendedor</option>
+                            <option v-for="user in users" :key="user.id" :value="user.id">
+                                {{ user.name }}
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="mt-6 flex justify-end space-x-2">
+                        <SecondaryButton @click="showVincularModal = false">Cancelar</SecondaryButton>
+                        <PrimaryButton type="submit">Vincular</PrimaryButton>
+                    </div>
+                </form>
             </div>
         </Modal>
     </AuthenticatedLayout>

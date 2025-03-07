@@ -32,10 +32,6 @@ Route::get('/', function () {
     ]);
 });
 
-// Route::get('/dashboard', function () {
-//     return Inertia::render('Home');
-// })->middleware(['auth', 'verified'])->name('dashboard');
-
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -62,7 +58,9 @@ Route::middleware(['auth'])->group(function () {
 Route::middleware(['auth'])->group(function () {
     Route::get('/orders', function () {
         return Inertia::render('Orders/Index', [
-            'orders' => Order::with('supplier', 'products')->get(),
+            'orders' => Order::with(['supplier', 'products' => function ($query) {
+                $query->select('products.id', 'products.name', 'order_product.quantity', 'order_product.unit_price');
+            }])->get(),
             'suppliers' => Supplier::all(),
             'products' => Product::all()
         ]);
@@ -73,6 +71,7 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('/users', [UserController::class, 'index'])->name('users.index');
     Route::post('/users', [UserController::class, 'store'])->name('users.store');
     Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
+    // Route::put('/users/{user}/toggle-status', [UserController::class, 'toggleStatus'])->name('users.toggleStatus');
     Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
 });
 

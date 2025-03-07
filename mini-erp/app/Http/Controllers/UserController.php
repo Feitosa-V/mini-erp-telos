@@ -35,7 +35,7 @@ class UserController extends Controller
             'name' => 'required',
             'email' => 'required|email|unique:users',
             'password' => 'required|min:6',
-            'role' => 'required|in:admin,user'
+            'role' => 'required|in:admin,seller'
         ]);
 
         User::create([
@@ -88,4 +88,12 @@ class UserController extends Controller
         $user->delete();
         return redirect()->route('users.index');
     }
+
+    public function toggleStatus(User $user)
+{
+    $user->status = !$user->status;
+    $user->save();
+
+    return redirect()->route('users.index');
+}
 }

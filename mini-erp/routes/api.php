@@ -4,6 +4,7 @@ use App\Http\Controllers\ProductController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SupplierController;
+use App\Http\Controllers\SupplierUserController;
 use App\Http\Controllers\ProductImportController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\UserController;
@@ -25,17 +26,20 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::apiResource('users', UserController::class);
+    Route::put('/users/{user}/toggle-status', [UserController::class, 'toggleStatus']);
 });
 
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::apiResource('suppliers', SupplierController::class);
+    Route::post('/suppliers/attach-user', [SupplierUserController::class, 'attachUser']);
+    Route::post('/suppliers/detach-user', [SupplierUserController::class, 'detachUser']);
 });
 
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::apiResource('products', ProductController::class);
-});
 
-Route::middleware(['auth:sanctum'])->post('/products/upload', [ProductImportController::class, 'upload']);
+    Route::post('/products/upload', [ProductImportController::class, 'upload']);
+});
 
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/orders', [OrderController::class, 'index']); // Listar pedidos

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Supplier;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Inertia\Inertia;
@@ -17,6 +18,7 @@ class SupplierController extends Controller
         $suppliers = Supplier::all();
         return Inertia::render('Suppliers/Index', [
             'suppliers' => $suppliers,
+            'users' => User::where('role', 'seller')->get()
         ]);
     }
 
@@ -35,8 +37,12 @@ class SupplierController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'cnpj' => 'required|string|unique:suppliers,cnpj',
-            'zip_code' => 'required|string',
+            'cnpj' => ['required', 'string', 'size:14', function ($attribute, $value, $fail) {
+                if (!self::validateCNPJ($value)) {
+                    $fail('CNPJ inválido.');
+                }
+            }],
+            'zip_code' => 'required|string|size:8',
         ]);
 
         // Buscar endereço pelo ViaCEP
@@ -103,5 +109,24 @@ class SupplierController extends Controller
     {
         Supplier::findOrFail($id)->delete();
         return response()->json(['message' => 'Fornecedor removido com Sucesso']);
+    }
+
+    private static function validateCNPJ($cnpj)
+    {
+        $cnpj = preg_replace('/[^0-9]/', '', $cnpj);
+        if (strlen($cnpj) !== 14) return false;
+
+        // Algoritmo de validação do CNPJ
+        for ($t = 12; $t < 14; $t++) {
+            $d = 0;
+            $c = 0;
+            for ($m = $t - 8, $n = 0; $m < $t; $m++, $n++) {
+                $d += $cnpj[$n] * $m;
+            }
+            $d = ((10 * $d) % 11) % 10;
+            if ($cnpj[$t] != $d) return false;
+        }
+
+        return true;
     }
 }

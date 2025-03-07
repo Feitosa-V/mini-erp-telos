@@ -32,7 +32,12 @@ class SendOrderReportEmail extends Command
     {
         $users = User::where('role', 'admin')->get(); // Envia para os administradores
 
-        $orders = Order::whereDate('created_at', Carbon::today())->get(); // Pedidos do dia
+        // Buscar pedidos dos últimos 7 dias e agrupar por status
+        $orders = Order::where('created_at', '>=', Carbon::now()->subDays(7))
+            ->with('supplier', 'products')
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->groupBy('status'); // Agrupar por status
 
         foreach ($users as $user) {
             Mail::to($user->email)->send(new DailyOrderReport($orders));

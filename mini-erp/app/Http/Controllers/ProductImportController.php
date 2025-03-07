@@ -18,7 +18,7 @@ class ProductImportController extends Controller
         $path = $request->file('file')->store('imports'); // Salva o arquivo no storage
 
         // Dispara um Job para processar o arquivo em background
-        ProcessProductImport::dispatch(auth()->user(), $path);
+        ProcessProductImport::dispatch(auth()->user(), $path, $request->supplier_id);
 
         return response()->json(['message' => 'Upload iniciado! Você receberá um email ao final.']);
     }

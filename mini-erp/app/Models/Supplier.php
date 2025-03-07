@@ -10,6 +10,11 @@ class Supplier extends Model
     use HasFactory;
 
     protected $fillable = [
-        'name', 'cnpj','zip_code','address',
+        'name', 'cnpj','zip_code','address','status'
     ];
+
+    public function users()
+    {
+        return $this->belongsToMany(User::class, 'supplier_user');
+    }
 }

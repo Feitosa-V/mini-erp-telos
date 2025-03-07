@@ -5,12 +5,13 @@ import PrimaryButton from '@/Components/PrimaryButton.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
 import DangerButton from '@/Components/DangerButton.vue';
 import WarningButton from '@/Components/WarningButton.vue';
+import SuccessButton from '@/Components/SuccessButton.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import TextInput from '@/Components/TextInput.vue';
 import { Head, router } from '@inertiajs/vue3';
 import { ref } from 'vue';
 import axios from 'axios';
-import { Plus, Pencil, Trash2 } from 'lucide-vue-next';
+import { Plus, Upload, Pencil, Trash2 } from 'lucide-vue-next';
 
 // Recebendo produtos do backend
 defineProps({
@@ -20,6 +21,7 @@ defineProps({
 
 // Controle dos modais
 const showModal = ref(false);
+const showImportModal = ref(false);
 const showEditModal = ref(false);
 const showDeleteModal = ref(false);
 const productToDelete = ref(null);
@@ -81,6 +83,43 @@ const deleteProduct = async () => {
         console.error('Erro ao excluir produto:', error.response?.data || error.message);
     }
 };
+
+// Importação de CSV
+const importForm = ref({
+    supplier_id: '',
+    file: null
+});
+
+const handleFileUpload = (event) => {
+    importForm.value.file = event.target.files[0];
+};
+
+const importCSV = async () => {
+    if (!importForm.value.supplier_id || !importForm.value.file) {
+        alert("Selecione um fornecedor e um arquivo CSV.");
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append("supplier_id", importForm.value.supplier_id);
+    formData.append("file", importForm.value.file);
+
+    try {
+        await axios.post('/api/products/upload', formData, {
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+                'Content-Type': 'multipart/form-data'
+            }
+        });
+
+        showImportModal.value = false;
+        importForm.value = { supplier_id: '', file: null };
+        router.reload({ only: ['products'] });
+
+    } catch (error) {
+        console.error('Erro ao importar CSV:', error.response?.data || error.message);
+    }
+};
 </script>
 
 <template>
@@ -94,15 +133,20 @@ const deleteProduct = async () => {
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
                 <div class="bg-white shadow-xl sm:rounded-lg p-6">
                     <div class="flex justify-between mb-4">
-                        <h1 class="text-2xl font-bold">Lista de Produtos</h1>
-                        <PrimaryButton @click="showModal = true">
-                            <Plus class="w-4 h-4 mr-2" /> Novo Produto
-                        </PrimaryButton>
+                        <h1 class="text-2xl font-bold text-gray-800">Lista de Produtos</h1>
+                        <div class="space-x-2">
+                            <PrimaryButton @click="showModal = true">
+                                <Plus class="w-4 h-4 mr-2" /> Novo Produto
+                            </PrimaryButton>
+                            <SuccessButton @click="showImportModal = true">
+                                <Upload class="w-4 h-4 mr-2" /> Importar CSV
+                            </SuccessButton>
+                        </div>
                     </div>
 
                     <table class="w-full border-collapse border border-gray-300 text-sm">
                         <thead>
-                            <tr class="bg-gray-200">
+                            <tr class="bg-gray-200 text-gray-700">
                                 <th class="border px-4 py-2">Nome</th>
                                 <th class="border px-4 py-2">Cor</th>
                                 <th class="border px-4 py-2">Preço</th>
@@ -129,14 +173,14 @@ const deleteProduct = async () => {
             </div>
         </div>
 
-        <!-- Modal de Criação -->
-        <Modal :show="showModal" @close="showModal = false">
+         <!-- Modal de Criação -->
+         <Modal :show="showModal" @close="showModal = false">
             <div class="p-6">
                 <h2 class="text-lg font-medium text-gray-900">Novo Produto</h2>
                 <form @submit.prevent="createProduct">
                     <div class="mt-4">
                         <InputLabel value="Fornecedor:" />
-                        <select v-model="form.supplier_id" class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm">
+                        <select v-model="form.supplier_id" class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm" required>
                             <option value="" disabled>Selecione um fornecedor</option>
                             <option v-for="supplier in suppliers" :key="supplier.id" :value="supplier.id">
                                 {{ supplier.name }}
@@ -145,19 +189,19 @@ const deleteProduct = async () => {
                     </div>
                     <div class="mt-4">
                         <InputLabel value="Referência:" />
-                        <TextInput v-model="form.reference" type="text" class="mt-1 block w-full" required />
+                        <TextInput v-model="form.reference" type="text" class="mt-1 block w-full" placeholder="Informe a referência" required />
                     </div>
                     <div class="mt-4">
                         <InputLabel value="Nome:" />
-                        <TextInput v-model="form.name" type="text" class="mt-1 block w-full" required />
+                        <TextInput v-model="form.name" type="text" class="mt-1 block w-full" placeholder="Informe o nome" required />
                     </div>
                     <div class="mt-4">
                         <InputLabel value="Cor:" />
-                        <TextInput v-model="form.color" type="text" class="mt-1 block w-full" required />
+                        <TextInput v-model="form.color" type="text" class="mt-1 block w-full" placeholder="Informe a cor" required />
                     </div>
                     <div class="mt-4">
                         <InputLabel value="Preço:" />
-                        <TextInput v-model="form.price" type="number" class="mt-1 block w-full" required />
+                        <TextInput v-model="form.price" type="number" class="mt-1 block w-full" placeholder="Informe o preço" required />
                     </div>
                     <div class="mt-6 flex justify-end">
                         <SecondaryButton @click="showModal = false">Cancelar</SecondaryButton>
@@ -202,6 +246,32 @@ const deleteProduct = async () => {
                     <div class="mt-6 flex justify-end">
                         <SecondaryButton @click="showEditModal = false">Cancelar</SecondaryButton>
                         <PrimaryButton type="submit" class="ms-3">Salvar</PrimaryButton>
+                    </div>
+                </form>
+            </div>
+        </Modal>
+
+        <!-- Modal de Importação CSV -->
+        <Modal :show="showImportModal" @close="showImportModal = false">
+            <div class="p-6">
+                <h2 class="text-lg font-medium text-gray-900">Importar Produtos via CSV</h2>
+                <form @submit.prevent="importCSV">
+                    <div class="mt-4">
+                        <InputLabel value="Fornecedor:" />
+                        <select v-model="importForm.supplier_id" class="block w-full border-gray-300 rounded-lg shadow-sm" required>
+                            <option value="" disabled>Selecione um fornecedor</option>
+                            <option v-for="supplier in suppliers" :key="supplier.id" :value="supplier.id">
+                                {{ supplier.name }}
+                            </option>
+                        </select>
+                    </div>
+                    <div class="mt-4">
+                        <InputLabel value="Arquivo CSV:" />
+                        <input type="file" accept=".csv" @change="handleFileUpload" class="block w-full border-gray-300 rounded-lg shadow-sm" required />
+                    </div>
+                    <div class="mt-6 flex justify-end">
+                        <SecondaryButton @click="showImportModal = false">Cancelar</SecondaryButton>
+                        <PrimaryButton type="submit" class="ms-3">Importar</PrimaryButton>
                     </div>
                 </form>
             </div>

@@ -6,14 +6,14 @@ import DropdownLink from '@/Components/DropdownLink.vue';
 import NavLink from '@/Components/NavLink.vue';
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink.vue';
 import { Link } from '@inertiajs/vue3';
-import { Home, Truck, Package, ShoppingCart, User, LogOut } from 'lucide-vue-next';
+import { Home, Truck, Package, ShoppingCart,User, Users, LogOut } from 'lucide-vue-next';
 
 const showingNavigationDropdown = ref(false);
 </script>
 
 <template>
     <div>
-        <div class="min-h-screen bg-gray-100">
+        <div class="flex flex-col min-h-screen bg-gray-100">
             <nav class="bg-white border-b border-gray-100">
                 <!-- Primary Navigation Menu -->
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -51,7 +51,7 @@ const showingNavigationDropdown = ref(false);
                             </div>
                             <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
                                 <NavLink :href="route('users.index')" :active="route().current('users.index')" class="flex items-center">
-                                    <User class="w-4 h-4 mr-2" /> Usuários
+                                    <Users class="w-4 h-4 mr-2" /> Usuários
                                 </NavLink>
                             </div>
                         </div>
@@ -135,8 +135,20 @@ const showingNavigationDropdown = ref(false);
                     class="sm:hidden"
                 >
                     <div class="pt-2 pb-3 space-y-1">
-                        <ResponsiveNavLink :href="route('dashboard')" :active="route().current('dashboard')">
-                            Dashboard
+                        <ResponsiveNavLink :href="route('dashboard')" :active="route().current('dashboard')" class="flex items-center">
+                            <Home class="w-4 h-4 mr-2" /> Dashboard
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink :href="route('suppliers.index')" :active="route().current('suppliers.index')" class="flex items-center">
+                            <Truck class="w-4 h-4 mr-2" /> Fornecedores
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink :href="route('products.index')" :active="route().current('products.index')" class="flex items-center">
+                            <Package class="w-4 h-4 mr-2" /> Produtos
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink :href="route('orders.index')" :active="route().current('orders.index')" class="flex items-center">
+                            <ShoppingCart class="w-4 h-4 mr-2" /> Pedidos
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink :href="route('users.index')" :active="route().current('users.index')" class="flex items-center">
+                            <Users class="w-4 h-4 mr-2" /> Usuários
                         </ResponsiveNavLink>
                     </div>
 
@@ -150,9 +162,9 @@ const showingNavigationDropdown = ref(false);
                         </div>
 
                         <div class="mt-3 space-y-1">
-                            <ResponsiveNavLink :href="route('profile.edit')"> Profile </ResponsiveNavLink>
+                            <ResponsiveNavLink :href="route('profile.edit')"> Perfil </ResponsiveNavLink>
                             <ResponsiveNavLink :href="route('logout')" method="post" as="button">
-                                Log Out
+                                Sair
                             </ResponsiveNavLink>
                         </div>
                     </div>
@@ -167,9 +179,14 @@ const showingNavigationDropdown = ref(false);
             </header>
 
             <!-- Page Content -->
-            <main>
+            <main class="flex-grow">
                 <slot />
             </main>
+
+            <footer class="bg-white border-t border-gray-200 py-4 text-center text-gray-600 text-sm">
+                &copy; {{ new Date().getFullYear() }} Desenvolvido por <span class="font-semibold">Vinícius Feitosa</span>.
+            </footer>
         </div>
+
     </div>
 </template>
