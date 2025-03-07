@@ -48,8 +48,10 @@ npm run dev
 - O sistema estará rodando em: `http://localhost:8000/login`
 - O acesso ao Mailpit estará disponível em: `http://localhost:8025/`
 
-# Acesso banco de dados
-- docker exec -it mini-erp-mysql mysql -uuser -ppassword mini_erp
+## Acesso ao banco de dados
+```sh
+docker exec -it mini-erp-mysql mysql -uuser -ppassword mini_erp
+```
 
 ### Credenciais Padrão
 
