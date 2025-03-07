@@ -51,7 +51,7 @@ class User extends Authenticatable
     public function getSuppliers()
     {
         if ($this->role === 'admin') {
-            return Supplier::all();
+            return Supplier::all()->where('status', 1);
         }
 
         return Supplier::whereHas('users', function ($query) {
