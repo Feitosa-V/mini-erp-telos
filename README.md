@@ -39,6 +39,15 @@ php artisan migrate:fresh --seed
 npm install
 ```
 
+Se der algum erro como esse: ERR_SSL_CIPHER_OPERATION_FAILED
+
+Tente esse outro comando:
+
+```sh
+npm install --force
+```
+
+
 ### 6. Rodar o frontend
 ```sh
 npm run dev
