@@ -34,19 +34,37 @@ docker exec -it mini-erp-app bash
 php artisan migrate:fresh --seed
 ```
 
+⚠️ Caso ocorra um erro ao rodar as migrations:
+
+Antes de continuar, verifique se o Composer está instalado corretamente no container:
+
+```sh
+docker exec -it mini-erp-app bash
+composer install
+```
+
 ### 5. Instalar dependências do frontend (Vue.js)
 ```sh
 npm install
 ```
 
-Se der algum erro como esse: ERR_SSL_CIPHER_OPERATION_FAILED
-
-Tente esse outro comando:
+⚠️ Se aparecer o erro ERR_SSL_CIPHER_OPERATION_FAILED, tente forçar a instalação com:
 
 ```sh
 npm install --force
 ```
 
+Se mesmo assim der erro, tente esse comando:
+
+```sh
+export NODE_OPTIONS=--openssl-legacy-provider
+```
+
+E em seguida:
+
+```sh
+npm install --force
+```
 
 ### 6. Rodar o frontend
 ```sh
