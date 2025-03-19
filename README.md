@@ -6,6 +6,8 @@ Antes de começar, certifique-se de ter instalado em sua máquina:
 
 - [Docker](https://www.docker.com/)
 - [Docker Compose](https://docs.docker.com/compose/)
+- [Composer](https://getcomposer.org/download/)
+- [Node e NPM](https://nodejs.org/pt)
 
 ## Configuração do Ambiente
 
