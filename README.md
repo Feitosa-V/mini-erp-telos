@@ -21,9 +21,10 @@ cd mini-erp-telos
 ```sh
 docker-compose up --build -d
 ```
-E em seguida:
+E em seguida instalar as dependências do Laravel:
 
 ```sh
+docker exec -it mini-erp-app bash
 composer install
 ```
 
