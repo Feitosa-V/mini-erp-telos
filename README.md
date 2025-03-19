@@ -19,8 +19,11 @@ cd mini-erp-telos
 ```sh
 docker-compose up --build -d
 ```
-⚠️ Isso já instala as dependências do Laravel automaticamente.
+E em seguida:
 
+```sh
+composer install
+```
 
 ### 3. Configurar o ambiente
 Crie o arquivo `.env` com base no `.env.example` e configure as variáveis de ambiente conforme necessário.
