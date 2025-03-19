@@ -31,9 +31,18 @@ Crie o arquivo `.env` com base no `.env.example` e configure as variáveis de am
 cp .env.example .env
 ```
 
-### 4. Rodar migrations e seeders
+### 4. Rodar migrations e seeders e Criar Chave
 ```sh
 docker exec -it mini-erp-app bash
+```
+Criar chave de acesso:
+
+```sh
+php artisan key:generate
+```
+Criar migrations e seeders:
+
+```sh
 php artisan migrate:fresh --seed
 ```
 
