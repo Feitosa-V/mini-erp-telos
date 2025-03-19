@@ -6,6 +6,8 @@ Antes de começar, certifique-se de ter instalado em sua máquina:
 
 - [Docker](https://www.docker.com/)
 - [Docker Compose](https://docs.docker.com/compose/)
+- [Composer](https://getcomposer.org/download/)
+- [Node e NPM](https://nodejs.org/pt)
 
 ## Configuração do Ambiente
 
@@ -48,11 +50,17 @@ php artisan migrate:fresh --seed
 
 ⚠️ Caso ocorra um erro ao rodar as migrations:
 
-Antes de continuar, verifique se o Composer está instalado corretamente no container:
+Antes de continuar, verifique se o Composer está instalado corretamente no projeto:
+
+```sh
+composer install
+```
+
+Caso apareça um erro do laravel log:
 
 ```sh
 docker exec -it mini-erp-app bash
-composer install
+chown www-data:www-data /var/www/storage/logs/laravel.log
 ```
 
 ### 5. Instalar dependências do frontend (Vue.js)
