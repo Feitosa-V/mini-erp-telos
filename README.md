@@ -62,6 +62,15 @@ Caso apareça um erro do laravel log:
 ```sh
 docker exec -it mini-erp-app bash
 chown www-data:www-data /var/www/storage/logs/laravel.log
+chmod 664 /var/www/storage/logs/laravel.log
+chown -R www-data:www-data /var/www/storage
+chmod -R 775 /var/www/storage
+```
+
+Depois Reiniciar o container:
+
+```sh
+docker restart mini-erp-app
 ```
 
 ### 5. Instalar dependências do frontend (Vue.js)
